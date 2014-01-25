@@ -41,8 +41,8 @@ impl Rect {
 		Rect { origin: origin, size: size }
 	}
 
+	/// Find which the rect has an origin farther to the left.
 	fn minXRect<'a>(rect1: &'a Rect, rect2: &'a Rect) -> (&'a Rect, &'a Rect) {
-		// Find which the rect has an origin farther to the left.
 		if (rect1.minX() <= rect2.minX()) {
 			(rect1, rect2)
 		} else {
