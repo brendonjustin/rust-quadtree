@@ -4,4 +4,5 @@
 #[desc = "A basic quadtree library."];
 #[license = "MIT"];
 
+pub mod geometry;
 pub mod quadtree;
