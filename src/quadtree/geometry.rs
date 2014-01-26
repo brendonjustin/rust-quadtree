@@ -1,3 +1,5 @@
+use std::num;
+
 pub struct Point {
     x: f32,
     y: f32,
@@ -15,13 +17,22 @@ pub struct Rect {
 
 
 impl Rect {
-    fn new(origin: Point, size: Size) -> Rect {
+    pub fn new(origin: Point, size: Size) -> Rect {
         Rect { origin: origin, size: size }
     }
 
     /// Find which the rect has an origin farther to the left.
-    fn minXRect<'a>(rect1: &'a Rect, rect2: &'a Rect) -> (&'a Rect, &'a Rect) {
+    pub fn minXRect<'a>(rect1: &'a Rect, rect2: &'a Rect) -> (&'a Rect, &'a Rect) {
         if (rect1.minX() <= rect2.minX()) {
+            (rect1, rect2)
+        } else {
+            (rect2, rect1)
+        }
+    }
+
+    /// Find which the rect has an origin with a lower y value.
+    pub fn minYRect<'a>(rect1: &'a Rect, rect2: &'a Rect) -> (&'a Rect, &'a Rect) {
+        if (rect1.minY() <= rect2.minY()) {
             (rect1, rect2)
         } else {
             (rect2, rect1)
@@ -31,7 +42,7 @@ impl Rect {
     /**
      Check if this rect entirely contains another rect.
      */
-    fn contains(&self, rect: &Rect) -> bool {
+    pub fn contains(&self, rect: &Rect) -> bool {
         // Find which the rect has an origin farther to the left.
         let (minXRect, otherRect) = Rect::minXRect(self, rect);
 
@@ -43,7 +54,7 @@ impl Rect {
     /**
      Check if this rect and another rect intersect.
      */
-    fn intersects(&self, rect: &Rect) -> bool {
+    pub fn intersects(&self, rect: &Rect) -> bool {
         let (minXRect, otherRect) = Rect::minXRect(self, rect);
 
         let intersects: bool = ((minXRect.maxX() >= otherRect.minX())
@@ -53,19 +64,41 @@ impl Rect {
         intersects
     }
 
-    fn maxX(&self) -> f32 {
+    /**
+     Get the intersection with another rect.
+     */
+    pub fn intersect(&self, rect: &Rect) -> Option<Rect> {
+        if !self.intersects(rect) {
+            return None;
+        }
+
+        let (minXRect, otherXRect) = Rect::minXRect(self, rect);
+        let (minYRect, otherYRect) = Rect::minYRect(self, rect);
+        let commonXStart = otherXRect.minX();
+        let commonYStart = otherYRect.minY();
+
+        let commonXEnd = num::min(minXRect.maxX(), otherXRect.maxX());
+        let commonYEnd = num::min(minYRect.maxY(), otherYRect.maxY());
+
+        let width = commonXEnd - commonXStart;
+        let height = commonYEnd - commonYStart;
+
+        Some(Rect::new(Point { x: commonXStart, y: commonYStart }, Size { width: width, height: height }))
+    }
+
+    pub fn maxX(&self) -> f32 {
         self.origin.x + self.size.width
     }
 
-    fn maxY(&self) -> f32 {
+    pub fn maxY(&self) -> f32 {
         self.origin.y + self.size.height
     }
 
-    fn minX(&self) -> f32 {
+    pub fn minX(&self) -> f32 {
         self.origin.x
     }
 
-    fn minY(&self) -> f32 {
+    pub fn minY(&self) -> f32 {
         self.origin.y
     }
 }
