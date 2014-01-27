@@ -26,15 +26,17 @@ pub struct QuadTree {
 
 impl QuadTree {
     /**
-     Create an empty quadtree with a zero-sized root node.
+     Create a quadtree with a root node with the given origin and size.
      */
-    pub fn new() -> QuadTree {
-        let origin = Point { x: 0 as f32, y: 0 as f32 };
-        let size = Size { width: 0 as f32, height: 0 as f32 };
-        let nodeRect = Rect { origin: origin, size: size };
-        let node = QuadTree { rect: nodeRect, elements: NoElements };
+    pub fn new(origin: Point, size: Size, elems: Elements) -> QuadTree {
+        let tree = 
+        match elems {
+            Children(tl, tr, br, bl) => QuadTree::newWithChildren(origin, size, tl, tr, br, bl),
+            Member(rect) => QuadTree::newWithMember(origin, size, rect),
+            NoElements => QuadTree::newWithSize(origin, size),
+        };
 
-        node
+        tree
     }
 
     /**
@@ -50,29 +52,50 @@ impl QuadTree {
 
         let size = Size { width: largerDimen, height: largerDimen };
 
-        QuadTree::newWithSize(rect.origin, size, Some(rect))
+        QuadTree::newWithMember(rect.origin, size, rect)
+    }
+
+    /**
+     Create an empty quadtree with a zero-sized root node.
+     */
+    pub fn newEmpty() -> QuadTree {
+        let origin = Point { x: 0 as f32, y: 0 as f32 };
+        let size = Size { width: 0 as f32, height: 0 as f32 };
+        let tree = QuadTree::new(origin, size, NoElements);
+
+        tree
+    }
+
+    /**
+     Create a quadtree with a root node with the given origin, size, and child rectangles.
+     Child nodes `tl`, `tr`, `br`, and `bl` should form the rect specified by `origin` and `size`.
+     */
+    fn newWithChildren(origin: Point, size: Size, tl: ~QuadTree, tr: ~QuadTree, br: ~QuadTree, bl: ~QuadTree) -> QuadTree {
+        let nodeRect = Rect { origin: origin, size: size };
+
+        let tree = QuadTree { rect: nodeRect, elements: Children(tl, tr, br, bl) };
+
+        tree
     }
 
     /**
      Create a quadtree with a root node with the given origin, size, and member rectangle.
-     If `insertRect` is not entirely contained within the rectangle defined by `origin` and `size`,
-     higher level nodes will be created to form a quadtree with a child of the rect specified
-     and other children such that the rect is in the tree.
      */
-    pub fn newWithSize(origin: Point, size: Size, insertRect: Option<Rect>) -> QuadTree {
+    fn newWithMember(origin: Point, size: Size, insertRect: Rect) -> QuadTree {
+        let node = QuadTree::newWithSize(origin, size);
+
+        let (success, tree) = node.insertRect(insertRect);
+        assert!(success, "Failed inserting a node into an empty quadtree.");
+
+        tree
+    }
+
+    /**
+     Create a quadtree with only a specified size and position.
+     */
+    fn newWithSize(origin: Point, size: Size) -> QuadTree {
         let nodeRect = Rect { origin: origin, size: size };
-        let node = QuadTree { rect: nodeRect, elements: NoElements };
-
-        let tree = 
-        match insertRect {
-            Some(rect) => {
-                let (success, tree) = node.insertRect(rect);
-                assert!(success, "Failed inserting a node into an empty quadtree.");
-
-                tree
-            }
-            None => node,
-        };
+        let tree = QuadTree { rect: nodeRect, elements: NoElements };
 
         tree
     }
