@@ -48,9 +48,9 @@ impl QuadTree {
             rect.size.height
         };
 
-        let square = Rect { origin: rect.origin, size: Size { width: largerDimen, height: largerDimen } };
+        let size = Size { width: largerDimen, height: largerDimen };
 
-        QuadTree { rect: square, elements: Member(rect), }
+        QuadTree::newWithSize(rect.origin, size, Some(rect))
     }
 
     /**
