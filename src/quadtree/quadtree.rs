@@ -73,6 +73,28 @@ impl QuadTree {
     fn newWithChildren(origin: Point, size: Size, tl: ~QuadTree, tr: ~QuadTree, br: ~QuadTree, bl: ~QuadTree) -> QuadTree {
         let nodeRect = Rect { origin: origin, size: size };
 
+        // Assert that our rect and our childrens' rects match up.
+        assert!(tl.rect.minX() == bl.rect.minX(), "Top left and bottom left children should have same minX coordinate.");
+        assert!(tl.rect.maxX() == bl.rect.maxX(), "Top left and bottom left children should have same maxX coordinate.");
+        assert!(tl.rect.maxY() == bl.rect.minY(), "Top left and bottom left children should have same maxY and minY coordinates, respectively.");
+
+        assert!(tl.rect.maxX() == tr.rect.minX(), "Top left and top right children should share their maxX and minX coordinates, respectively.");
+        assert!(tl.rect.minY() == tr.rect.minY(), "Top left and top right children should have same minY coordinate.");
+        assert!(tl.rect.maxY() == tr.rect.maxY(), "Top left and top right children should have same maxY coordinate.");
+
+        assert!(bl.rect.maxX() == br.rect.minX(), "Bottom left and bottom right children should share their maxX and minX coordinates, respectively.");
+        assert!(bl.rect.minY() == br.rect.minY(), "Bottom left and bottom right children should have same minY coordinate.");
+        assert!(bl.rect.maxY() == br.rect.maxY(), "Bottom left and bottom right children should have same maxY coordinate.");
+
+        assert!(tr.rect.minX() == br.rect.minX(), "Top right and bottom right children should have same minX coordinate.");
+        assert!(tr.rect.maxX() == br.rect.maxX(), "Top right and bottom right children should have same maxX coordinate.");
+        assert!(tr.rect.maxY() == br.rect.minY(), "Top right and bottom right children should have same maxY and minY coordinates, respectively.");
+
+        assert!(nodeRect.minX() == tl.rect.minX(), "Tree node's minX should match its top left child's minX coordinate.");
+        assert!(nodeRect.maxX() == tr.rect.maxX(), "Tree node's maxX should match its top right child's maxX coordinate.");
+        assert!(nodeRect.minY() == tl.rect.minY(), "Tree node's minY should match its top left child's minY coordinate.");
+        assert!(nodeRect.maxY() == bl.rect.maxY(), "Tree node's maxY should match its top left child's maxY coordinate.");
+
         let tree = QuadTree { rect: nodeRect, elements: Children(tl, tr, br, bl) };
 
         tree
