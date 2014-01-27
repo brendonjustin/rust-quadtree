@@ -59,13 +59,20 @@ impl QuadTree {
      higher level nodes will be created to form a quadtree with a child of the rect specified
      and other children such that the rect is in the tree.
      */
-    pub fn newWithSize(origin: Point, size: Size, insertRect: Rect) -> QuadTree {
+    pub fn newWithSize(origin: Point, size: Size, insertRect: Option<Rect>) -> QuadTree {
         let nodeRect = Rect { origin: origin, size: size };
         let node = QuadTree { rect: nodeRect, elements: NoElements };
 
-        let (success, tree) = node.insertRect(insertRect);
+        let tree = 
+        match insertRect {
+            Some(rect) => {
+                let (success, tree) = node.insertRect(rect);
+                assert!(success, "Failed inserting a node into an empty quadtree.");
 
-        assert!(success, "Failed inserting a node into an empty quadtree.");
+                tree
+            }
+            None => node,
+        };
 
         tree
     }
