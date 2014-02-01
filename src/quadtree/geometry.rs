@@ -15,6 +15,15 @@ pub struct Rect {
     size: Size,
 }
 
+impl Point {
+    pub fn add(&self, addPoint: Point) -> Point {
+        Point { x: self.x + addPoint.x, y: self.y + addPoint.y }
+    }
+
+    pub fn subtract(&self, offsetPoint: Point) -> Point {
+        Point { x: self.x - offsetPoint.x, y: self.y - offsetPoint.y }
+    }
+}
 
 impl Rect {
     pub fn new(origin: Point, size: Size) -> Rect {
@@ -100,5 +109,13 @@ impl Rect {
 
     pub fn minY(&self) -> f32 {
         self.origin.y
+    }
+
+    pub fn height(&self) -> f32 {
+        self.size.height
+    }
+
+    pub fn width(&self) -> f32 {
+        self.size.width
     }
 }
