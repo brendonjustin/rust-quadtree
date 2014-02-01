@@ -6,7 +6,7 @@ use geometry::Size;
  Elements that may be contained by a quadtree node.
  Either child nodes, a single rect, or nothing.
  */
-enum Elements {
+pub enum Elements {
     /// Children are top left, top right, bottom right, and bottom left, respectively.
     Children(~QuadTree, ~QuadTree, ~QuadTree, ~QuadTree),
     /// A single rectangle.
@@ -29,7 +29,7 @@ impl QuadTree {
      Create a quadtree with a root node with the given origin and size.
      */
     pub fn new(origin: Point, size: Size, elems: Elements) -> QuadTree {
-        let tree = 
+        let tree =
         match elems {
             Children(tl, tr, br, bl) => QuadTree::newWithChildren(origin, size, tl, tr, br, bl),
             Member(rect) => QuadTree::newWithMember(origin, size, rect),
@@ -124,18 +124,131 @@ impl QuadTree {
 
     /**
      Insert a rectangle into the quadtree. If `toInsert` overlaps another rectangle
-     already in the tree, the return value will be (false, self). 
+     already in the tree, the return value will be (false, self).
      If the root node is zero-sized, the resulting tree will have a square root node
      large enough to hold `toInsert`.
      */
     pub fn insertRect(self, toInsert: Rect) -> (bool, QuadTree) {
-        if self.rect.size.width == 0.0 {
+        if self.rect.width() == 0.0 {
             return (true, QuadTree::newAutosized(toInsert))
         }
 
-        fail!("insertRect not implemented for non-zero sized trees!");
+        let rectsInChildren = self.rectsInChildNodesIntersectedByRect(&toInsert);
+        if rectsInChildren.len() > 0 {
+            return (false, self)
+        }
 
-        (false, self)
+        let mut node = self;
+        let mut needBigger = node.rect.contains(&toInsert);
+
+        while needBigger {
+            let width = node.rect.width();
+            let height = node.rect.height();
+            let origin = node.rect.origin;
+            let size = node.rect.size;
+
+            let wPoint = Point { x: width, y: 0. };
+            let hPoint = Point { x: 0., y: height };
+
+            // Check if the rect to insert extends to the left or "above" our origin,
+            // i.e. has a lower x or y coordinate in its origin.
+            // Use this information to determine if we must grow the tree left, up, right, or down.
+            let left = node.rect.minX() < toInsert.minX();
+            let top = node.rect.minX() < toInsert.minY();
+
+            let (tl, tr, bl, br) =
+            match (left, top) {
+                (true, true) => (QuadTree::newWithSize(origin.subtract(wPoint).add(hPoint), size),
+                                 QuadTree::newWithSize(origin.subtract(hPoint), size),
+                                 QuadTree::newWithSize(origin.subtract(wPoint), size),
+                                 node),
+                (true, false) => (QuadTree::newWithSize(origin.subtract(wPoint), size),
+                                  node,
+                                  QuadTree::newWithSize(origin.subtract(wPoint).subtract(hPoint), size),
+                                  QuadTree::newWithSize(origin.subtract(hPoint), size)),
+                (false, true) => (QuadTree::newWithSize(origin.add(hPoint), size),
+                                  QuadTree::newWithSize(origin.add(hPoint).add(wPoint), size),
+                                  node,
+                                  QuadTree::newWithSize(origin.add(wPoint), size)),
+                (false, false) => (node,
+                                   QuadTree::newWithSize(origin.add(wPoint), size),
+                                   QuadTree::newWithSize(origin.add(hPoint), size),
+                                   QuadTree::newWithSize(origin.add(wPoint).add(hPoint), size)),
+            };
+
+            let (tl, tr, bl, br) = (tl.insertRectIfIntersects(toInsert),
+                                    tr.insertRectIfIntersects(toInsert),
+                                    bl.insertRectIfIntersects(toInsert),
+                                    br.insertRectIfIntersects(toInsert),);
+
+            node = QuadTree::newWithChildren(tl.rect.origin,
+                Size { width: width * 2., height: height * 2. },
+                ~tl, ~tr, ~br, ~bl);
+
+            needBigger = node.rect.contains(&toInsert);
+        }
+
+        (true, node)
+    }
+
+    /**
+     Insert a rectangle into the node IFF the rectangle intersects the node.
+     Does nothing if `toInsert` intersects our existing member rect.
+     */
+    fn insertRectIfIntersects(self, toInsert: Rect) -> QuadTree {
+        if self.rect.intersects(&toInsert) {
+            let origin = self.rect.origin;
+            let size = self.rect.size;
+            match self.elements {
+                Children(~tl, ~tr, ~br, ~bl) => {
+                    let (tl, tr, br, bl) = (tl.insertRectIfIntersects(toInsert),
+                                            tr.insertRectIfIntersects(toInsert),
+                                            br.insertRectIfIntersects(toInsert),
+                                            bl.insertRectIfIntersects(toInsert),);
+                    QuadTree::newWithChildren(origin, size, ~tl, ~tr, ~br, ~bl)
+                },
+                Member(rect) => {
+                    if rect.intersects(&toInsert) {
+                        self
+                    } else {
+                        let (tl, tr, br, bl) = QuadTree::makeChildrenForRect(&self.rect);
+
+                        let (tl, tr, br, bl) = (tl.insertRectIfIntersects(rect),
+                                                tr.insertRectIfIntersects(rect),
+                                                br.insertRectIfIntersects(rect),
+                                                bl.insertRectIfIntersects(rect),);
+                        let (tl, tr, br, bl) = (tl.insertRectIfIntersects(toInsert),
+                                                tr.insertRectIfIntersects(toInsert),
+                                                br.insertRectIfIntersects(toInsert),
+                                                bl.insertRectIfIntersects(toInsert),);
+
+                        QuadTree::newWithChildren(origin, size, ~tl, ~tr, ~br, ~bl)
+                    }
+                },
+                NoElements => QuadTree::newWithMember(origin, size, toInsert),
+            }
+        } else {
+            self
+        }
+    }
+
+    /**
+     Create four nodes suitable for use as children, covering the passed in rect.
+     */
+    fn makeChildrenForRect(rect: &Rect) -> (~QuadTree, ~QuadTree, ~QuadTree, ~QuadTree,) {
+        let origin = rect.origin;
+        let size = rect.size;
+
+        let newSize = Size { width: size.width / 2., height: size.height / 2. };
+        let wPoint = Point { x: newSize.width, y: 0. };
+        let hPoint = Point { x: 0., y: newSize.height };
+
+        let (tl, tr, br, bl) = (QuadTree::newWithSize(origin, newSize),
+                                QuadTree::newWithSize(origin.add(wPoint), newSize),
+                                QuadTree::newWithSize(origin.add(wPoint).add(hPoint), newSize),
+                                QuadTree::newWithSize(origin.add(hPoint), newSize),);
+
+        (~tl, ~tr, ~br, ~bl)
     }
 
     /**

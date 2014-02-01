@@ -1,27 +1,40 @@
-use std::num;
+use std;
 
+#[deriving(Clone, Eq)]
 pub struct Point {
     x: f32,
     y: f32,
 }
 
+#[deriving(Clone, Eq)]
 pub struct Size {
     width: f32,
     height: f32,
 }
 
+#[deriving(Clone, Eq)]
 pub struct Rect {
     origin: Point,
     size: Size,
 }
 
 impl Point {
+    pub fn new(x: f32, y: f32) -> Point {
+        Point { x: x, y: y }
+    }
+
     pub fn add(&self, addPoint: Point) -> Point {
         Point { x: self.x + addPoint.x, y: self.y + addPoint.y }
     }
 
     pub fn subtract(&self, offsetPoint: Point) -> Point {
         Point { x: self.x - offsetPoint.x, y: self.y - offsetPoint.y }
+    }
+}
+
+impl Size {
+    pub fn new(width: f32, height: f32) -> Size {
+        Size { width: width, height: height }
     }
 }
 
@@ -32,7 +45,7 @@ impl Rect {
 
     /// Find which the rect has an origin farther to the left.
     pub fn minXRect<'a>(rect1: &'a Rect, rect2: &'a Rect) -> (&'a Rect, &'a Rect) {
-        if (rect1.minX() <= rect2.minX()) {
+        if rect1.minX() <= rect2.minX() {
             (rect1, rect2)
         } else {
             (rect2, rect1)
@@ -41,7 +54,7 @@ impl Rect {
 
     /// Find which the rect has an origin with a lower y value.
     pub fn minYRect<'a>(rect1: &'a Rect, rect2: &'a Rect) -> (&'a Rect, &'a Rect) {
-        if (rect1.minY() <= rect2.minY()) {
+        if rect1.minY() <= rect2.minY() {
             (rect1, rect2)
         } else {
             (rect2, rect1)
@@ -66,9 +79,9 @@ impl Rect {
     pub fn intersects(&self, rect: &Rect) -> bool {
         let (minXRect, otherRect) = Rect::minXRect(self, rect);
 
-        let intersects: bool = ((minXRect.maxX() >= otherRect.minX())
+        let intersects: bool = (minXRect.maxX() >= otherRect.minX())
             && ((minXRect.minY() >= otherRect.minY() && minXRect.minY() <= otherRect.maxY())
-                || (minXRect.minY() <= otherRect.minY() && minXRect.maxY() >= otherRect.minY())));
+                || (minXRect.minY() <= otherRect.minY() && minXRect.maxY() >= otherRect.minY()));
 
         intersects
     }
@@ -86,8 +99,8 @@ impl Rect {
         let commonXStart = otherXRect.minX();
         let commonYStart = otherYRect.minY();
 
-        let commonXEnd = num::min(minXRect.maxX(), otherXRect.maxX());
-        let commonYEnd = num::min(minYRect.maxY(), otherYRect.maxY());
+        let commonXEnd = std::cmp::min(minXRect.maxX(), otherXRect.maxX());
+        let commonYEnd = std::cmp::min(minYRect.maxY(), otherYRect.maxY());
 
         let width = commonXEnd - commonXStart;
         let height = commonYEnd - commonYStart;
