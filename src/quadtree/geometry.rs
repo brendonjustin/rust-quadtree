@@ -2,14 +2,14 @@ use std;
 
 #[deriving(Clone, Eq)]
 pub struct Point {
-    x: f32,
-    y: f32,
+    x: f64,
+    y: f64,
 }
 
 #[deriving(Clone, Eq)]
 pub struct Size {
-    width: f32,
-    height: f32,
+    width: f64,
+    height: f64,
 }
 
 #[deriving(Clone, Eq)]
@@ -19,7 +19,7 @@ pub struct Rect {
 }
 
 impl Point {
-    pub fn new(x: f32, y: f32) -> Point {
+    pub fn new(x: f64, y: f64) -> Point {
         Point { x: x, y: y }
     }
 
@@ -33,7 +33,7 @@ impl Point {
 }
 
 impl Size {
-    pub fn new(width: f32, height: f32) -> Size {
+    pub fn new(width: f64, height: f64) -> Size {
         Size { width: width, height: height }
     }
 }
@@ -108,27 +108,27 @@ impl Rect {
         Some(Rect::new(Point { x: commonXStart, y: commonYStart }, Size { width: width, height: height }))
     }
 
-    pub fn maxX(&self) -> f32 {
+    pub fn maxX(&self) -> f64 {
         self.origin.x + self.size.width
     }
 
-    pub fn maxY(&self) -> f32 {
+    pub fn maxY(&self) -> f64 {
         self.origin.y + self.size.height
     }
 
-    pub fn minX(&self) -> f32 {
+    pub fn minX(&self) -> f64 {
         self.origin.x
     }
 
-    pub fn minY(&self) -> f32 {
+    pub fn minY(&self) -> f64 {
         self.origin.y
     }
 
-    pub fn height(&self) -> f32 {
+    pub fn height(&self) -> f64 {
         self.size.height
     }
 
-    pub fn width(&self) -> f32 {
+    pub fn width(&self) -> f64 {
         self.size.width
     }
 }
