@@ -50,7 +50,7 @@ impl QuadTree {
             rect.size.height
         };
 
-        let size = Size { width: largerDimen, height: largerDimen };
+        let size = Size::new(largerDimen, largerDimen);
 
         QuadTree::newWithMember(rect.origin, size, rect)
     }
@@ -59,8 +59,8 @@ impl QuadTree {
      Create an empty quadtree with a zero-sized root node.
      */
     pub fn newEmpty() -> QuadTree {
-        let origin = Point { x: 0 as f32, y: 0 as f32 };
-        let size = Size { width: 0 as f32, height: 0 as f32 };
+        let origin = Point::new(0., 0.);
+        let size = Size::new(0., 0.);
         let tree = QuadTree::new(origin, size, NoElements);
 
         tree
@@ -71,7 +71,7 @@ impl QuadTree {
      Child nodes `tl`, `tr`, `br`, and `bl` should form the rect specified by `origin` and `size`.
      */
     fn newWithChildren(origin: Point, size: Size, tl: ~QuadTree, tr: ~QuadTree, br: ~QuadTree, bl: ~QuadTree) -> QuadTree {
-        let nodeRect = Rect { origin: origin, size: size };
+        let nodeRect = Rect::new(origin, size);
 
         // Assert that our rect and our childrens' rects match up.
         assert!(tl.rect.minX() == bl.rect.minX(), "Top left and bottom left children should have same minX coordinate.");
@@ -116,7 +116,7 @@ impl QuadTree {
      Create a quadtree with only a specified size and position.
      */
     fn newWithSize(origin: Point, size: Size) -> QuadTree {
-        let nodeRect = Rect { origin: origin, size: size };
+        let nodeRect = Rect::new(origin, size);
         let tree = QuadTree { rect: nodeRect, elements: NoElements };
 
         tree
@@ -147,8 +147,8 @@ impl QuadTree {
             let origin = node.rect.origin;
             let size = node.rect.size;
 
-            let wPoint = Point { x: width, y: 0. };
-            let hPoint = Point { x: 0., y: height };
+            let wPoint = Point::new(width, 0.);
+            let hPoint = Point::new(0., height);
 
             // Check if the rect to insert extends to the left or "above" our origin,
             // i.e. has a lower x or y coordinate in its origin.
@@ -182,7 +182,7 @@ impl QuadTree {
                                     br.insertRectIfIntersects(toInsert),);
 
             node = QuadTree::newWithChildren(tl.rect.origin,
-                Size { width: width * 2., height: height * 2. },
+                Size::new(width * 2., height * 2.),
                 ~tl, ~tr, ~br, ~bl);
 
             needBigger = node.rect.contains(&toInsert);
@@ -239,9 +239,9 @@ impl QuadTree {
         let origin = rect.origin;
         let size = rect.size;
 
-        let newSize = Size { width: size.width / 2., height: size.height / 2. };
-        let wPoint = Point { x: newSize.width, y: 0. };
-        let hPoint = Point { x: 0., y: newSize.height };
+        let newSize = Size::new(size.width / 2., size.height / 2.);
+        let wPoint = Point::new(newSize.width, 0.);
+        let hPoint = Point::new(0., newSize.height);
 
         let (tl, tr, br, bl) = (QuadTree::newWithSize(origin, newSize),
                                 QuadTree::newWithSize(origin.add(wPoint), newSize),
