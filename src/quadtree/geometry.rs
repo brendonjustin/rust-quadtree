@@ -24,11 +24,11 @@ impl Point {
     }
 
     pub fn add(&self, addPoint: Point) -> Point {
-        Point { x: self.x + addPoint.x, y: self.y + addPoint.y }
+        Point::new(self.x + addPoint.x, self.y + addPoint.y)
     }
 
     pub fn subtract(&self, offsetPoint: Point) -> Point {
-        Point { x: self.x - offsetPoint.x, y: self.y - offsetPoint.y }
+        Point::new(self.x - offsetPoint.x, self.y - offsetPoint.y)
     }
 }
 
@@ -105,7 +105,7 @@ impl Rect {
         let width = commonXEnd - commonXStart;
         let height = commonYEnd - commonYStart;
 
-        Some(Rect::new(Point { x: commonXStart, y: commonYStart }, Size { width: width, height: height }))
+        Some(Rect::new(Point::new(commonXStart, commonYStart), Size::new(width, height)))
     }
 
     pub fn maxX(&self) -> f64 {
