@@ -139,9 +139,9 @@ impl QuadTree {
         }
 
         let mut node = self;
-        let mut needBigger = node.rect.contains(&toInsert);
+        let mut bigEnough = node.rect.contains(&toInsert);
 
-        while needBigger {
+        while !bigEnough {
             let width = node.rect.width();
             let height = node.rect.height();
             let origin = node.rect.origin;
@@ -185,7 +185,7 @@ impl QuadTree {
                 Size::new(width * 2., height * 2.),
                 ~tl, ~tr, ~br, ~bl);
 
-            needBigger = node.rect.contains(&toInsert);
+            bigEnough = node.rect.contains(&toInsert);
         }
 
         (true, node)
