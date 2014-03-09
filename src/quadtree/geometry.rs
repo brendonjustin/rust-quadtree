@@ -1,4 +1,4 @@
-use std;
+use std::cmp::min;
 
 #[deriving(Clone, Eq)]
 pub struct Point {
@@ -99,8 +99,8 @@ impl Rect {
         let commonXStart = otherXRect.minX();
         let commonYStart = otherYRect.minY();
 
-        let commonXEnd = std::cmp::min(minXRect.maxX(), otherXRect.maxX());
-        let commonYEnd = std::cmp::min(minYRect.maxY(), otherYRect.maxY());
+        let commonXEnd = min(minXRect.maxX(), otherXRect.maxX());
+        let commonYEnd = min(minYRect.maxY(), otherYRect.maxY());
 
         let width = commonXEnd - commonXStart;
         let height = commonYEnd - commonYStart;
