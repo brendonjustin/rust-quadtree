@@ -6,6 +6,7 @@ use geometry::Size;
  Elements that may be contained by a quadtree node.
  Either child nodes, a single rect, or nothing.
  */
+#[deriving(Show)]
 pub enum Elements {
     /// Children are top left, top right, bottom right, and bottom left, respectively.
     Children(~QuadTree, ~QuadTree, ~QuadTree, ~QuadTree),
@@ -19,6 +20,7 @@ pub enum Elements {
  A quadtree node that can contain either one rectangle,
  or exactly four child nodes.
  */
+#[deriving(Show)]
 pub struct QuadTree {
     rect: Rect,
     elements: Elements,
@@ -104,10 +106,10 @@ impl QuadTree {
      Create a quadtree with a root node with the given origin, size, and member rectangle.
      */
     fn newWithMember(origin: Point, size: Size, insertRect: Rect) -> QuadTree {
-        let node = QuadTree::newWithSize(origin, size);
-
-        let (success, tree) = node.insertRect(insertRect);
-        assert!(success, "Failed inserting a node into an empty quadtree.");
+        let qtRect = Rect::new(origin, size);
+        assert!(qtRect.contains(&insertRect),
+            "QuadTree node constructed by newWithMember not able to contain the rect it is passed in.");
+        let tree = QuadTree { rect: qtRect, elements: Member(insertRect) };
 
         tree
     }
@@ -150,7 +152,7 @@ impl QuadTree {
             let wPoint = Point::new(width, 0.);
             let hPoint = Point::new(0., height);
 
-            // Check if the rect to insert extends to the left or "above" our origin,
+            // Check if the rects to insert extends to the left or "above" our origin,
             // i.e. has a lower x or y coordinate in its origin.
             // Use this information to determine if we must grow the tree left, up, right, or down.
             let left = node.rect.minX() < toInsert.minX();
@@ -176,17 +178,45 @@ impl QuadTree {
                                    QuadTree::newWithSize(origin.add(wPoint).add(hPoint), size)),
             };
 
-            let (tl, tr, bl, br) = (tl.insertRectIfIntersects(toInsert),
-                                    tr.insertRectIfIntersects(toInsert),
-                                    bl.insertRectIfIntersects(toInsert),
-                                    br.insertRectIfIntersects(toInsert),);
-
             node = QuadTree::newWithChildren(tl.rect.origin,
                 Size::new(width * 2., height * 2.),
                 ~tl, ~tr, ~br, ~bl);
 
             bigEnough = node.rect.contains(&toInsert);
         }
+
+        let origin = node.rect.origin;
+        let size = node.rect.size;
+        node = match(node.elements) {
+            Children(tl, tr, br, bl) => QuadTree::newWithChildren(
+                origin,
+                size,
+                ~tl.insertRectIfIntersects(toInsert),
+                ~tr.insertRectIfIntersects(toInsert),
+                ~bl.insertRectIfIntersects(toInsert),
+                ~br.insertRectIfIntersects(toInsert)),
+            Member(rect) => {
+                let hw = size.width / 2.;
+                let hh = size.height / 2.;
+                let wp = Point::new(hw, 0.);
+                let hp = Point::new(0., hh);
+                let (tlo, tro, bro, blo) = (
+                    origin,
+                    origin.add(wp),
+                    origin.add(hp),
+                    origin.add(wp).add(hp),
+                    );
+                let hSize = Size::new(hw, hh);
+                QuadTree::newWithChildren(
+                    origin,
+                    size,
+                    ~QuadTree::newWithSize(tlo, hSize).insertRectIfIntersects(rect).insertRectIfIntersects(toInsert),
+                    ~QuadTree::newWithSize(tro, hSize).insertRectIfIntersects(rect).insertRectIfIntersects(toInsert),
+                    ~QuadTree::newWithSize(bro, hSize).insertRectIfIntersects(rect).insertRectIfIntersects(toInsert),
+                    ~QuadTree::newWithSize(blo, hSize).insertRectIfIntersects(rect).insertRectIfIntersects(toInsert),)
+            }
+            NoElements => QuadTree::newWithMember(origin, size, toInsert),
+        };
 
         (true, node)
     }
