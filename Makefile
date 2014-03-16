@@ -8,9 +8,6 @@ BINDIR = $(OUTDIR)/bin
 LIBDIR = $(OUTDIR)/lib
 TMPDIR = $(OUTDIR)/tmp
 
-$(BINDIR) $(LIBDIR) $(TMPDIR):
-	mkdir -p '$@'
-
 .PHONY: all
 all: $(TMPDIR)/libquadtree.dummy
 
@@ -27,3 +24,6 @@ demo: compile_demo
 .PHONY: clean
 clean:
 	rm -f '$(OUTDIR)'
+
+$(BINDIR) $(LIBDIR) $(TMPDIR):
+	mkdir -p '$@'
