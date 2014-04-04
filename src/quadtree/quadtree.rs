@@ -187,7 +187,7 @@ impl QuadTree {
 
         let origin = node.rect.origin;
         let size = node.rect.size;
-        node = match(node.elements) {
+        node = match node.elements {
             Children(tl, tr, br, bl) => QuadTree::newWithChildren(
                 origin,
                 size,
