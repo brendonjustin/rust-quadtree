@@ -22,8 +22,8 @@ pub enum Elements {
  */
 #[deriving(Show)]
 pub struct QuadTree {
-    rect: Rect,
-    elements: Elements,
+    pub rect: Rect,
+    pub elements: Elements,
 }
 
 impl QuadTree {
