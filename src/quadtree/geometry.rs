@@ -1,16 +1,16 @@
-#[deriving(Clone, Show)]
+#[deriving(Clone, PartialEq, Show)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
 }
 
-#[deriving(Clone, Show)]
+#[deriving(Clone, PartialEq, Show)]
 pub struct Size {
     pub width: f64,
     pub height: f64,
 }
 
-#[deriving(Clone, Show)]
+#[deriving(Clone, PartialEq, Show)]
 pub struct Rect {
     pub origin: Point,
     pub size: Size,
