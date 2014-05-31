@@ -23,7 +23,7 @@ demo: compile_demo
 
 .PHONY: clean
 clean:
-	rm -f '$(OUTDIR)'
+	rm -rf '$(OUTDIR)'
 
 $(BINDIR) $(LIBDIR) $(TMPDIR):
 	mkdir -p '$@'
