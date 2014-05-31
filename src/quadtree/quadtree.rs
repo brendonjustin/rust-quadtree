@@ -232,7 +232,7 @@ impl QuadTree {
             let origin = self.rect.origin;
             let size = self.rect.size;
             match self.elements {
-                Children(box tl, box tr, box br, box bl) => {
+                Children(tl, tr, br, bl) => {
                     let (tl, tr, br, bl) = (tl.insert_rect_if_intersects(toInsert),
                                             tr.insert_rect_if_intersects(toInsert),
                                             br.insert_rect_if_intersects(toInsert),
